@@ -7,10 +7,11 @@ data supports from what is a fixable systematic.
 It draws no technique-specific figure and invents no interpretation. Your figures and
 your diagnosis reference stay in your repository. See SPEC.md.
 
-Status: pre-release. The contract (this module) is stable enough to write an adapter
-against; the builder is not written yet. See ROADMAP in README.md.
+Status: pre-release. Contract, technique-independent diagnostics, diagnosis-reference
+matching and page assembly are implemented. See the roadmap in README.md.
 """
 
+from .build import build, build_overview
 from .contract import (
     ContractError,
     Problem,
@@ -21,10 +22,25 @@ from .contract import (
     check_consistency,
     validate,
 )
+from .diagnose import diagnose
+from .finding import SYMPTOMS, Finding
+from .reference import ReferenceError
+from .render import Page, Plate, RenderError, Tile, render
 
 __version__ = "0.0.1"
 
 __all__ = [
+    "build",
+    "build_overview",
+    "diagnose",
+    "Finding",
+    "SYMPTOMS",
+    "Plate",
+    "Tile",
+    "Page",
+    "render",
+    "RenderError",
+    "ReferenceError",
     "Results",
     "Quality",
     "Provenance",
