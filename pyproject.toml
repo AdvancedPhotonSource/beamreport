@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "beamreport"
+version = "0.0.1"
+description = "A contract and report builder for measurement analyses: turn a finished run into a self-contained, diagnostic, publishable account"
+readme = "README.md"
+license = "BSD-3-Clause"
+requires-python = ">=3.9"
+authors = [
+    {name = "Hemant Sharma", email = "hsharma@anl.gov"},
+]
+keywords = [
+    "reporting", "diagnostics", "residuals", "provenance",
+    "synchrotron", "beamline", "reproducibility",
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering",
+]
+
+# Deliberately minimal. beamreport must not acquire a technique-specific dependency;
+# that is the constraint the whole design rests on. Callers supply rendered figures,
+# so no plotting library is needed here.
+dependencies = [
+    "numpy>=1.22",
+]
+
+[project.optional-dependencies]
+hdf5 = ["h5py>=3.0"]
+dev = ["pytest>=7.0"]
+
+[project.urls]
+Homepage = "https://github.com/AdvancedPhotonSource/beamreport"
+Specification = "https://github.com/AdvancedPhotonSource/beamreport/blob/main/SPEC.md"
+
+[tool.setuptools.packages.find]
+include = ["beamreport*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
