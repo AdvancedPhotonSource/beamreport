@@ -31,6 +31,9 @@ dependencies = [
     "numpy>=1.22",
 ]
 
+[project.scripts]
+beamreport-doc-lint = "beamreport.doclint:main"
+
 [project.optional-dependencies]
 hdf5 = ["h5py>=3.0"]
 dev = ["pytest>=7.0"]

@@ -81,7 +81,14 @@ worse than a crash, because the page still looks authoritative.
 |---|---|
 | [SPEC.md](SPEC.md) | You want to know what the contract is and why each rule exists. Start here. |
 | [ADAPTER.md](ADAPTER.md) | You have a pipeline and want reports out of it. ~50-100 lines, one afternoon. |
+| [DOCS_SPEC.md](DOCS_SPEC.md) | You are writing the documents around a technique, not just the report. SPEC §7's three-document table, expanded into a contract with a linter. |
+| [REGISTRY.md](REGISTRY.md) | You want to read a live doc set before writing your own. |
 | [DATA_REQUEST.md](DATA_REQUEST.md) | You are asking another group for data to try this on. |
+
+The doc set and the report are the same idea at two scales: a diagnosis reference is what
+turns a descriptive page into a diagnostic one, and it is also the file a person reaches
+for when a plot looks wrong. `beamreport-doc-lint` checks that it exists, parses, and is
+keyed to symptoms the sidecar can actually emit.
 
 ## Roadmap
 
