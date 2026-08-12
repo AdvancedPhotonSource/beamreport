@@ -12,7 +12,7 @@ request into this one.
 |---|---|---|---|
 | FF-HEDM (far-field 3DXRD) | `manuals/ff-hedm/` | [MIDAS](https://github.com/marinerhemant/MIDAS) | complete — spine, 5 phases, diagnosis, runbook, notebook |
 | NF-HEDM (near-field) | `manuals/nf-hedm/` | MIDAS | complete — spine, 6 phases, parameter reference, diagnosis, runbook, notebook |
-| Laue microdiffraction | `scripts/pipeline/laue/` | LaueMatching (private) | complete — spine, 7 phases, diagnosis, runbook, **two** campaign notebooks |
+| Laue microdiffraction | `scripts/pipeline/laue/` | [LaueMatching](https://github.com/AdvancedPhotonSource/LaueMatching) | complete — spine, 7 phases, diagnosis, runbook, **two** campaign notebooks |
 
 ## What "complete" means
 
