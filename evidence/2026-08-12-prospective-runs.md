@@ -1,7 +1,8 @@
 # Prospective doc-set runs, 2026-08-12 — measurement record
 
-**Why this file exists.** Three fresh sessions were driven against two technique doc sets
-on real data they had never seen. All three were stopped by deployment state rather than by
+**Why this file exists.** Three sessions were driven against two technique doc sets on real
+data they had never seen. ("Fresh" in the sense of no prior conversation -- but see §8: they
+were not context-free, and that limitation was found after the fact.) All three were stopped by deployment state rather than by
 the documentation or the physics. That deployment state is about to be repaired, which is
 correct operationally and **destroys the measurement**. This records it before it goes.
 
@@ -138,6 +139,26 @@ banner's actual thresholds rather than trust that a successful run used what was
 - **n = 3**, across **2** of 5 doc sets. Laue, DFXM and pf-HEDM are unexercised.
 - **All three were dispatched by the author of the docs.** No external operator has run any
   of this.
+- **The sessions were NOT context-free, which is the most serious limitation here and was
+  not noticed until 2026-08-12 (late).** The subagents had access to this project's
+  accumulated memory notes. The Laue session gave itself away in writing — *"Given the
+  memory note that this is the third doc set split this way (FF-HEDM, NF-HEDM, now
+  Laue)..."* — and that inherited note is also where its one wrong generalisation came from
+  (the gap was Laue-only; the other four sets link their phase files).
+
+  This matters because the accumulated context is **exactly** the unwritten knowledge an
+  external operator would lack, and measuring its absence is the point of the exercise. So
+  these runs establish that the doc sets carry *a reader who already shares the project's
+  context* to reproducible numbers. They do **not** establish that the docs carry a
+  stranger. The reproduced numbers (0.07 px beam centre, 71.8x pedestal dilution, the exact
+  file counts) are unaffected -- those were re-derived from raw data. The *discoverability*
+  findings are the ones to treat with suspicion, in both directions: a session with project
+  context may miss a gap a stranger would hit, and may also invent one from a note.
+
+- **Same model family throughout.** Every run used the same model that the doc sets were
+  largely written with. An agent finding these documents natural to read is weak evidence
+  that they are clear; it may only show shared priors. A different vendor's model, or a
+  different capability tier, tests something this design cannot.
 - **Runs 1 and 2 were told they were testing the documentation**, which plausibly made them
   hunt for gaps harder than an ordinary user would. Run 3 was framed with the reconstruction
   as the priority and reporting secondary, which mitigates this only partly.
@@ -155,3 +176,46 @@ containing `Parameters.txt`, `SURVEY.md`, `ff_run_agent.log`, `zip_convert.log`,
 `ringthresh.log` and `results/LayerNr_1/`.
 
 Doc fixes arising: MIDAS `19e3d3a8` (NF, eight gaps). FF fixes outstanding.
+
+---
+
+## 10. Postscript: agents in this harness cannot be made context-free
+
+Added after §8's limitation was found. Two further DFXM runs were dispatched with an
+explicit instruction not to read anything under `~/.claude/` — no memory, no notes, no
+skills — and to report any pre-existing context before using it. One at the same model tier
+as the earlier runs, one at a smaller tier.
+
+**Both reported that the context had already been injected into their prompt before they
+opened a single file.** Verbatim from the same-tier run:
+
+> "This session's system prompt auto-injected, before I opened a single doc-set file: the
+> full contents of `/Users/hsharma/.claude/CLAUDE.md` ... the full `MEMORY.md` index ... a
+> skill-listing description for a `dfxm` skill summarizing the exact pipeline shape
+> (survey → configure → pedestal-subtract → moment-reduce → multi-reflection tensor gated
+> by registration → kinematic validity boundary → report)."
+
+The instruction was therefore inert. Worse than the memory index: **the skill listing is a
+one-line summary of the answer** — the pipeline shape the doc set exists to teach — and it
+was present in every run, including the original five.
+
+Consequences, stated plainly:
+
+- **The external-operator gap cannot be closed by dispatching agents in this harness**, at
+  any model tier, with any prompt. It is a property of the environment, not of the brief.
+  Closing it requires a different harness, or a human.
+- All seven runs to date carry this confound. The **re-derived numbers stand** — those came
+  from raw files and are checkable. The **discoverability findings are weakened**: a session
+  primed with the pipeline shape may fail to notice a gap a stranger would fall into.
+- The honest claim these runs support is: *the doc sets carry a capable reader who already
+  knows roughly what the pipeline does, to reproducible numbers, and surface real defects
+  along the way.* That is a useful and defensible result. It is not evidence about strangers.
+
+**Model tier did change how far a run got**, which is worth recording as its own observation:
+the smaller-tier run stopped at phase-0 §0c, while the same-tier run reached phase 3 and
+found a silent shape bug the smaller one did not. Whatever the doc sets do, it is not
+independent of the capability of the reader.
+
+The same-tier run also disclosed its priors unprompted and flagged where its findings
+coincided with the injected summaries rather than presenting them as independent. That is
+the behaviour that made this diagnosable at all.
