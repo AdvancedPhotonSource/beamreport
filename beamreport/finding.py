@@ -27,6 +27,16 @@ SYMPTOMS: dict[str, str] = {
     "bound.pileup": "objects pile up against a declared parameter bound",
     "quality.low_fraction": "a substantial fraction of objects fall below the quality threshold",
     "null.not_cleared": "a quoted quantity does not clear its null",
+    # --- added after the DFXM doc set exposed the gap -------------------------
+    # A residual-based diagnostic is structurally BLIND to a multiplicative error
+    # when the model carries a free amplitude: the scale is absorbed and the
+    # residual stays flat. Catching it needs an expectation from outside the fit.
+    # DFXM's pedestal dilution is the model case -- a perfectly smooth orientation
+    # map, 67x too small, with nothing wrong in the residual.
+    "scale.suppressed": "a recovered magnitude is far below an independent expectation",
+    "scale.inflated": "a recovered magnitude is far above an independent expectation",
+    "uncertainty.miscalibrated": "the declared uncertainties do not match the observed scatter",
+    "floor.limited": "recovered values pile up at the pipeline's own resolution floor",
 }
 
 # Levels, in the order a report presents them.

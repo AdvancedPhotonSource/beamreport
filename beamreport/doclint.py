@@ -7,7 +7,7 @@ three things a context-free reader needs before it can do damage.
 
 Citations (``path:line`` into source) are deliberately NOT checked here. They
 point at the technique's own code, so whatever checks them has to run in the
-repository that contains that code -- see DOCS_SPEC §7.
+repository that contains that code -- see DOCS_SPEC §8.
 
     beamreport-doc-lint path/to/doc-set/
     beamreport-doc-lint --init path/to/doc-set/
@@ -21,11 +21,21 @@ import sys
 from pathlib import Path
 
 from .finding import SYMPTOMS
-from .reference import ReferenceError, parse as parse_reference
+from .reference import ReferenceError, local_symptoms, parse as parse_reference
 
 SPINE = "README.md"
 DIAGNOSIS = "DIAGNOSIS.md"
+ENVELOPE = "ENVELOPE.md"
 RUNBOOK = "RUNBOOK.md"
+
+# The three tiers of DOCS_SPEC §6. Matched on the tier word alone: what matters is
+# that limits were SORTED, because the tier is what decides whether a report may
+# suggest changing something or must state it as unobtainable.
+ENVELOPE_TIERS = (
+    ("fixed", re.compile(r"(?im)^#{1,3}.*\bfixed\b|^\s*\|?\s*\*{0,2}fixed\b")),
+    ("configured", re.compile(r"(?im)^#{1,3}.*\bconfigur|^\s*\|?\s*\*{0,2}configur")),
+    ("intrinsic", re.compile(r"(?im)^#{1,3}.*\bintrinsic\b|^\s*\|?\s*\*{0,2}intrinsic\b")),
+)
 # A glob, not a filename: DOCS_SPEC §2 says one notebook PER CAMPAIGN, so a
 # technique with three campaigns has three, named for them. Requiring one exact
 # name would push a project into merging campaign records, which is the opposite
@@ -37,8 +47,14 @@ NOTEBOOK_GLOB = ("*LAB_NOTEBOOK*.md", "*Lab_Notebook*.md", "*NOTEBOOK*.md")
 # checker that people route around by renaming a heading.
 _IS = re.I | re.S
 SPINE_REQUIRED = [
+    # Bidirectional and wide on purpose. The first version demanded the gating verb
+    # AFTER the word "scope" within 120 chars, and false-flagged a doc set whose scope
+    # gate is a row in its halt table ("...confirm first (scope)"). A checker that
+    # fails a doc for the shape of its prose teaches people to write for the checker.
     ("scope gate",
-     re.compile(r"\bscope\b.{0,120}(stop|only|assumes|covers)|stop and ask", _IS)),
+     re.compile(r"\bscope\b.{0,200}?(stop|halt|confirm|only|assumes|covers|gate|ask)"
+                r"|(stop|halt|confirm|only|assumes|covers|gate|ask).{0,200}?\bscope\b"
+                r"|stop and ask", _IS)),
     ("install gate",
      re.compile(r"(install|version|floor|environment).{0,160}(gate|check|verify)", _IS)),
     # `\bhalt\b` and not "stop and ask": the scope gate says "stop and ask" too, and
@@ -59,6 +75,44 @@ def _read(p: Path) -> str:
     return p.read_text(errors="replace") if p.is_file() else ""
 
 
+_EMPTY_CELL = {"", "-", "--", "—", "n/a", "na", "tbd", "?"}
+
+
+def _bounds_are_sourced(env: str) -> bool | None:
+    """Does the configured tier say what imposes each bound?
+
+    Checks the *column*, not a phrase. Searching for wording would make this a style
+    checker that renaming a heading routes around, and would pass a file whose rows
+    are all empty -- which is the "reads as coverage" failure the check exists for.
+
+    Returns None when there is no table to judge, so a doc set that states its bounds
+    in prose is not failed for the shape of its markup.
+    """
+    lines = env.splitlines()
+    for i, ln in enumerate(lines):
+        if "|" not in ln:
+            continue
+        head = [c.strip().lower() for c in ln.strip().strip("|").split("|")]
+        col = next((k for k, c in enumerate(head)
+                    if re.search(r"limited by|imposed by|bounded by|source", c)), None)
+        if col is None:
+            continue
+        cells = []
+        for row in lines[i + 2:]:                     # +2 skips the |---| separator
+            if "|" not in row:
+                break
+            parts = [c.strip() for c in row.strip().strip("|").split("|")]
+            if len(parts) > col:
+                cells.append(parts[col])
+        if cells:
+            filled = [c for c in cells if c.lower().strip("* ") not in _EMPTY_CELL]
+            # Half is deliberate: an envelope is allowed to declare some bounds
+            # unknown (that is what suppresses their counterfactuals), but a table
+            # that is mostly blank is a template, not an envelope.
+            return len(filled) * 2 >= len(cells)
+    return None
+
+
 def check_set(root: Path) -> list[Problem]:
     out: list[Problem] = []
     if not root.is_dir():
@@ -69,6 +123,7 @@ def check_set(root: Path) -> list[Problem]:
     # 1. The artifacts exist.
     for want, why in ((SPINE, "the spine is what a fresh session is handed"),
                       (DIAGNOSIS, "without it a report has no findings, only figures"),
+                      (ENVELOPE, "without it 'what could be observed differently' is guesswork"),
                       (RUNBOOK, "'what is true right now' is the document that goes missing")):
         if want not in files:
             out.append(Problem(f"MISSING    {want} -- {why}"))
@@ -100,8 +155,17 @@ def check_set(root: Path) -> list[Problem]:
         if not entries:
             out.append(Problem(
                 f"DIAGNOSIS  {DIAGNOSIS} has no entries -- three is a working start"))
+        # A technique may declare its own symptoms (DOCS_SPEC §5b) for detectors
+        # beamreport does not have. The control that stops that being an escape hatch
+        # is that every one must name what emits it.
+        local = local_symptoms(_read(files[DIAGNOSIS]))
+        for name, emitter in sorted(local.items()):
+            if not emitter or emitter.strip("*_` ").lower() in ("", "-", "tbd", "?"):
+                out.append(Problem(
+                    f"DIAGNOSIS  local symptom {name!r} names nothing that emits it -- "
+                    f"an entry nothing produces is dead text that reads as coverage"))
         for e in entries:
-            if e.symptom not in SYMPTOMS:          # parse() already refuses, belt-and-braces
+            if e.symptom not in SYMPTOMS and e.symptom not in local:
                 out.append(Problem(
                     f"DIAGNOSIS  entry {e.title!r} keyed to unknown symptom "
                     f"{e.symptom!r}"))
@@ -109,6 +173,30 @@ def check_set(root: Path) -> list[Problem]:
                 out.append(Problem(
                     f"DIAGNOSIS  entry {e.title!r} has no Test -- an entry that cannot "
                     f"come back the other way only confirms its author"))
+
+    # 3b. The envelope sorted its limits, and is not stale.
+    env = _read(files.get(ENVELOPE, root / ENVELOPE))
+    if env:
+        missing = [name for name, pat in ENVELOPE_TIERS if not pat.search(env)]
+        if missing:
+            out.append(Problem(
+                f"ENVELOPE   {ENVELOPE} does not sort limits into {', '.join(missing)} -- "
+                f"the tier is what decides whether a report may suggest a change or must "
+                f"call the quantity unobtainable"))
+        if not re.search(r"\b20\d\d-\d\d-\d\d\b", env):
+            out.append(Problem(
+                f"ENVELOPE   {ENVELOPE} carries no date; a stale envelope recommends what "
+                f"the beamline stopped being able to do"))
+        if not re.search(r"(?i)\bowner\b|\bmaintain(er|ed by)\b", env):
+            out.append(Problem(
+                f"ENVELOPE   {ENVELOPE} names no owner -- nobody re-checks a spec-sheet "
+                f"number that is nobody's"))
+        # A bound with no source is the row that produces confident bad advice, so the
+        # tier that carries counterfactuals has to say what imposes each limit.
+        if _bounds_are_sourced(env) is False:
+            out.append(Problem(
+                f"ENVELOPE   {ENVELOPE} lists changeable parameters without saying what "
+                f"limits them -- an unsourced bound is worse than a missing one"))
 
     # 4. The runbook is dated and has a pick-up point.
     rb = _read(files.get(RUNBOOK, root / RUNBOOK))

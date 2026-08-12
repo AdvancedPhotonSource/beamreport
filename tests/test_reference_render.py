@@ -50,8 +50,45 @@ def test_entry_without_symptom_is_refused():
 
 
 def test_unknown_symptom_is_refused_and_lists_valid_ones():
-    with pytest.raises(ReferenceError, match="Known symptoms"):
+    with pytest.raises(ReferenceError, match="Either use a generic symptom"):
         parse("## X\nsymptom: trend.wobbly\n\n**Test.** Something.\n")
+
+
+# --- technique-local symptoms (DOCS_SPEC §5b) ---------------------------------
+
+LOCAL = """
+## Local symptoms
+
+| symptom | emitted by |
+|---|---|
+| `pedestal_dilution` | moment reduction, Notebook 1a |
+
+## Amplitude far too small
+symptom: pedestal_dilution
+
+**Test.** Recompute on subtracted frames; if it moves < 10% the pedestal is not the cause.
+
+**Lever.** Subtract the background before the moment.
+"""
+
+
+def test_declared_local_symptom_is_accepted():
+    e = parse(LOCAL)
+    assert len(e) == 1 and e[0].symptom == "pedestal_dilution"
+
+
+def test_local_declaration_table_is_not_parsed_as_an_entry():
+    assert all(x.title != "Local symptoms" for x in parse(LOCAL))
+
+
+def test_undeclared_local_symptom_still_refused():
+    with pytest.raises(ReferenceError):
+        parse(LOCAL.replace("| `pedestal_dilution` | moment reduction, Notebook 1a |", ""))
+
+
+def test_local_symptoms_maps_name_to_emitter():
+    from beamreport.reference import local_symptoms
+    assert local_symptoms(LOCAL)["pedestal_dilution"].startswith("moment reduction")
 
 
 def test_most_specific_entry_wins():

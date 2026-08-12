@@ -43,6 +43,23 @@ which is the other entry.
 **Lever.** Recalibrate and re-index.
 """
 
+ENVELOPE_OK = """
+# T envelope
+**Last checked: 2026-08-12** - Owner: A. Person
+## E1. Fixed
+| property | value | provenance | unobtainable | substitute |
+|---|---|---|---|---|
+| beam/detector angle | 90 deg | measured | sample-frame declination | stage motion |
+## E2. Configured
+| parameter | used | range | limited by | buys |
+|---|---|---|---|---|
+| frame time | 10 ms | 5-100 ms | limited by detector readout | faster dynamics |
+## E3. Intrinsic
+| question | why | distinguish from |
+|---|---|---|
+| which side of a same-phase interface | nothing separates them | footprint evidence |
+"""
+
 RUNBOOK_OK = """
 # T runbook
 ## R1. Where it runs
@@ -64,16 +81,18 @@ def _write(d, **files):
 
 def _full(tmp_path):
     return _write(tmp_path, README__md=SPINE_OK, DIAGNOSIS__md=DIAG_OK,
-                  RUNBOOK__md=RUNBOOK_OK, LAB_NOTEBOOK__md="# notes\n")
+                  ENVELOPE__md=ENVELOPE_OK, RUNBOOK__md=RUNBOOK_OK,
+                  LAB_NOTEBOOK__md="# notes\n")
 
 
 def test_complete_set_passes(tmp_path):
     assert check_set(_full(tmp_path)) == []
 
 
-@pytest.mark.parametrize("missing", ["DIAGNOSIS.md", "RUNBOOK.md", "LAB_NOTEBOOK.md"])
+@pytest.mark.parametrize("missing",
+                         ["DIAGNOSIS.md", "ENVELOPE.md", "RUNBOOK.md", "LAB_NOTEBOOK.md"])
 def test_missing_artifact_is_named(tmp_path, missing):
-    """DOCS_SPEC §2: four artifacts, and the linter names which is absent."""
+    """DOCS_SPEC §2: five artifacts, and the linter names which is absent."""
     _full(tmp_path)
     (tmp_path / missing).unlink()
     problems = check_set(tmp_path)
@@ -130,3 +149,54 @@ def test_oversized_spine_is_reported(tmp_path):
     _full(tmp_path)
     (tmp_path / "README.md").write_text(SPINE_OK + "\nfiller\n" * 500)
     assert any("stays loaded" in p for p in check_set(tmp_path))
+
+
+# --- DOCS_SPEC §6: the envelope ------------------------------------------------
+
+
+def test_envelope_without_tiers_is_flagged(tmp_path):
+    """Unsorted limits are the failure: the tier decides whether a report may
+    suggest a change or must call the quantity unobtainable."""
+    _full(tmp_path)
+    (tmp_path / "ENVELOPE.md").write_text(
+        "# T envelope\n**Last checked: 2026-08-12** - Owner: A\nSome limits, unsorted.\n")
+    problems = check_set(tmp_path)
+    assert any("ENVELOPE" in p and "sort" in p for p in problems)
+
+
+def test_undated_envelope_is_flagged(tmp_path):
+    _full(tmp_path)
+    (tmp_path / "ENVELOPE.md").write_text(ENVELOPE_OK.replace("2026-08-12", "recently"))
+    assert any("ENVELOPE" in p and "date" in p for p in check_set(tmp_path))
+
+
+def test_ownerless_envelope_is_flagged(tmp_path):
+    _full(tmp_path)
+    (tmp_path / "ENVELOPE.md").write_text(ENVELOPE_OK.replace("Owner: A. Person", ""))
+    assert any("ENVELOPE" in p and "owner" in p for p in check_set(tmp_path))
+
+
+def test_unsourced_bound_is_flagged(tmp_path):
+    """A precise bound nobody can trace produces confident bad advice."""
+    _full(tmp_path)
+    (tmp_path / "ENVELOPE.md").write_text(
+        ENVELOPE_OK.replace("| limited by detector readout |", "|  |"))
+    assert any("ENVELOPE" in p and "limits them" in p for p in check_set(tmp_path))
+
+
+def test_sourced_bound_passes_regardless_of_wording(tmp_path):
+    """The check reads the column, not the phrasing -- otherwise it is a style
+    checker that renaming a heading routes around."""
+    _full(tmp_path)
+    (tmp_path / "ENVELOPE.md").write_text(
+        ENVELOPE_OK.replace("limited by detector readout", "stage travel"))
+    assert not any("limits them" in p for p in check_set(tmp_path))
+
+
+def test_prose_envelope_is_not_failed_for_having_no_table(tmp_path):
+    _full(tmp_path)
+    (tmp_path / "ENVELOPE.md").write_text(
+        "# T envelope\n**Last checked: 2026-08-12** - Owner: A\n"
+        "## Fixed\nThe panel is edge-on.\n## Configured\nFrame time, bounded by readout.\n"
+        "## Intrinsic\nSame-phase interfaces do not separate.\n")
+    assert not any("limits them" in p for p in check_set(tmp_path))

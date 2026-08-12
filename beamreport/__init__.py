@@ -22,6 +22,7 @@ from .contract import (
     check_consistency,
     validate,
 )
+from . import envelope
 from .diagnose import diagnose
 from .finding import SYMPTOMS, Finding
 from .reference import ReferenceError
@@ -33,6 +34,7 @@ __all__ = [
     "build",
     "build_overview",
     "diagnose",
+    "envelope",
     "Finding",
     "SYMPTOMS",
     "Plate",

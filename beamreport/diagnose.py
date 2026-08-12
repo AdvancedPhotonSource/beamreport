@@ -342,6 +342,69 @@ def bound_pileup(values: np.ndarray, lo: float, hi: float, shell: float = 0.02) 
     return {"verdict": verdict, "shell_fraction": frac, "expected_uniform": 2 * shell, "n": int(x.size)}
 
 
+def scale_against_expectation(measured: float, expected: float, tol: float = 0.25) -> dict:
+    """Compare a recovered magnitude against an independent expectation.
+
+    This is the one class of error a residual-based diagnostic cannot see. When the
+    model carries a free amplitude, a multiplicative error is absorbed into the fit and
+    the residual stays flat: the map looks smooth, the chi-squared looks fine, and the
+    number is wrong by orders of magnitude. Catching it requires a value from outside
+    the fit, which is why `expected` is an input and never inferred.
+    """
+    if not (np.isfinite(measured) and np.isfinite(expected)) or expected == 0:
+        return {"verdict": "insufficient"}
+    ratio = float(measured / expected)
+    if ratio < 1 - tol:
+        verdict = "suppressed"
+    elif ratio > 1 + tol:
+        verdict = "inflated"
+    else:
+        verdict = "consistent"
+    return {"verdict": verdict, "ratio": ratio, "measured": float(measured),
+            "expected": float(expected), "tolerance": float(tol)}
+
+
+def uncertainty_calibration(resid: np.ndarray, sigma: np.ndarray) -> dict:
+    """Do the declared uncertainties match the observed scatter?
+
+    chi-squared per degree of freedom, where sigma is a 1-sigma uncertainty in the
+    residual's own units. Far from 1 in either direction means every significance
+    statement downstream is wrong: too high and real structure is called noise, too low
+    and noise is quoted as a detection.
+    """
+    m = np.isfinite(resid) & np.isfinite(sigma) & (sigma > 0)
+    r, s = resid[m], sigma[m]
+    if r.size < 20:
+        return {"verdict": "insufficient", "n": int(r.size)}
+    chi2 = float(np.mean((r / s) ** 2))
+    if chi2 > 2.0:
+        verdict = "underestimated"        # errors too small for the scatter present
+    elif chi2 < 0.5:
+        verdict = "overestimated"
+    else:
+        verdict = "calibrated"
+    return {"verdict": verdict, "chi2_per_dof": chi2, "n": int(r.size)}
+
+
+def at_floor(values: np.ndarray, floor: float, rel_tol: float = 0.1) -> dict:
+    """Are recovered values piling up at the pipeline's own floor?
+
+    A fitted value sitting at the resolution floor measures the pipeline, not the
+    sample. It is circular: the analysis cannot return anything smaller, so finding the
+    smallest possible answer is not evidence of anything. The floor must come from the
+    envelope, never from the data being judged.
+    """
+    x = np.asarray(values, dtype=float)
+    x = x[np.isfinite(x)]
+    if x.size < 20 or not np.isfinite(floor) or floor <= 0:
+        return {"verdict": "insufficient", "n": int(x.size)}
+    frac = float(np.mean(x <= floor * (1 + rel_tol)))
+    return {
+        "verdict": "at_floor" if frac > 0.2 else "above_floor",
+        "fraction_at_floor": frac, "floor": float(floor), "n": int(x.size),
+    }
+
+
 def clears_null(value: float, null_samples: np.ndarray, side: str = "greater") -> dict:
     """Does a measured quantity clear what the same analysis returns on null data?"""
     ns = np.asarray(null_samples, dtype=float).ravel()
@@ -363,12 +426,17 @@ def clears_null(value: float, null_samples: np.ndarray, side: str = "greater") -
 # ------------------------------------------------------------------ orchestration
 
 
-def diagnose(results, sidecar=None, quality=None, bounds=None, nulls=None) -> list[Finding]:
+def diagnose(results, sidecar=None, quality=None, bounds=None, nulls=None,
+             expectations=None, floors=None) -> list[Finding]:
     """Run every applicable technique-independent test and return Findings.
 
-    `bounds` maps a Results column name to (lo, hi) for the pile-up test. `nulls` maps
-    a label to (measured_value, null_samples). Both are opt-in: a test with no declared
-    input is skipped rather than guessed at.
+    All the extra inputs are opt-in, and a test with no declared input is skipped rather
+    than guessed at -- an undeclared limit produces no claim.
+
+    - `bounds`       {column: (lo, hi)} for the pile-up test
+    - `nulls`        {label: (measured, null_samples)}
+    - `expectations` {label: (measured, expected[, tolerance])} from OUTSIDE the fit
+    - `floors`       {column: floor} or {column: (floor, provenance)}, from the envelope
     """
     out: list[Finding] = []
 
@@ -377,6 +445,9 @@ def diagnose(results, sidecar=None, quality=None, bounds=None, nulls=None) -> li
 
     if sidecar is not None:
         out += _sidecar_findings(results, sidecar, bounds)
+
+    out += _expectation_findings(expectations)
+    out += _floor_findings(results, floors)
 
     for label, (value, samples) in (nulls or {}).items():
         r = clears_null(value, samples)
@@ -393,6 +464,53 @@ def diagnose(results, sidecar=None, quality=None, bounds=None, nulls=None) -> li
             ))
     order = {lvl: i for i, lvl in enumerate(("systematic", "caution", "solid"))}
     return sorted(out, key=lambda f: order.get(f.level, 9))
+
+
+def _expectation_findings(expectations) -> list[Finding]:
+    out: list[Finding] = []
+    for label, spec in (expectations or {}).items():
+        measured, expected, *rest = spec
+        r = scale_against_expectation(measured, expected, rest[0] if rest else 0.25)
+        if r["verdict"] not in ("suppressed", "inflated"):
+            continue
+        factor = 1 / r["ratio"] if r["verdict"] == "suppressed" else r["ratio"]
+        out.append(Finding(
+            symptom=f"scale.{r['verdict']}", level="systematic",
+            title=f"{label} is {r['verdict']} against its expectation",
+            statement=(
+                f"Measured {fmt(r['measured'])} against an expected {fmt(r['expected'])}, "
+                f"a factor of {fmt(factor)}. A multiplicative error of this kind is "
+                f"invisible to the residual when the model carries a free amplitude, so "
+                f"a flat residual is not evidence against it."
+            ),
+            numbers=r, channel=label,
+        ))
+    return out
+
+
+def _floor_findings(results, floors) -> list[Finding]:
+    out: list[Finding] = []
+    for col, spec in (floors or {}).items():
+        if col not in results.columns:
+            continue
+        floor, prov = spec if isinstance(spec, (tuple, list)) else (spec, "")
+        vals = np.asarray(results.columns[col][0], dtype=float)
+        r = at_floor(vals, floor)
+        if r["verdict"] != "at_floor":
+            continue
+        src = f" (floor from {prov})" if prov else ""
+        out.append(Finding(
+            symptom="floor.limited", level="caution",
+            title=f"{col} is pinned at the analysis floor",
+            statement=(
+                f"{r['fraction_at_floor'] * 100:.0f}% of {r['n']} values sit at or below "
+                f"{fmt(r['floor'])}{src}. Those values measure the pipeline, not the "
+                f"sample: the analysis cannot return anything smaller, so finding the "
+                f"smallest possible answer is not evidence about the specimen."
+            ),
+            numbers=r, coord=col,
+        ))
+    return out
 
 
 def _quality_findings(quality) -> list[Finding]:
@@ -483,6 +601,31 @@ def _sidecar_findings(results, sidecar, bounds) -> list[Finding]:
                 ),
                 numbers=sv, channel=ch,
             ))
+
+        # Uncertainty calibration, but only when the declared units make `weight`
+        # unambiguously a 1-sigma in the residual's own units. A weight column could
+        # equally be 1/sigma^2, and silently guessing between them would produce a
+        # chi-squared wrong by orders of magnitude -- exactly the class of convention
+        # error the unit declaration exists to prevent.
+        for wname in sidecar.names("weight"):
+            if units.get(wname, "") != r_unit or not r_unit:
+                continue
+            uc = uncertainty_calibration(r, sidecar.column(wname))
+            if uc["verdict"] in ("underestimated", "overestimated"):
+                low = uc["verdict"] == "overestimated"
+                out.append(Finding(
+                    symptom="uncertainty.miscalibrated", level="systematic",
+                    title=f"{ch}: declared uncertainties do not match the scatter",
+                    statement=(
+                        f"chi-squared per degree of freedom is {fmt(uc['chi2_per_dof'])} "
+                        f"over {uc['n']} observations, against 1 for a calibrated error "
+                        f"model. The uncertainties are "
+                        f"{'too large' if low else 'too small'}, so every significance "
+                        f"statement derived from them is "
+                        f"{'conservative' if low else 'overstated'}."
+                    ),
+                    numbers=uc, channel=ch,
+                ))
 
         for cname in coords:
             c = sidecar.column(cname)

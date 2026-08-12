@@ -1,8 +1,9 @@
 # The technique doc set — specification
 
 SPEC §7 says a technique needs **three documents, never one**. This file is that table
-expanded into a contract a technique can be checked against, plus the fourth artifact §7
-did not name because it was already covered elsewhere: the **diagnosis reference**.
+expanded into a contract a technique can be checked against, plus two artifacts §7 did not
+name: the **diagnosis reference**, which was covered elsewhere, and the **envelope**, which
+nothing covered.
 
 `beamreport` supplies the contract and the linter. It does **not** supply the content —
 same boundary as ADAPTER.md §5. Your procedure cites your code, so it lives in your
@@ -22,13 +23,14 @@ Splitting fixes that only if the split is on the right axis. **Split by when it 
 not by subject.** A file per step sounds tidy and is wrong: the hard rules apply across
 all steps, and a symptom is almost never diagnosed in the step that caused it.
 
-## 2. The four artifacts
+## 2. The five artifacts
 
 | Artifact | Contains | Read when | Volatile? |
 |---|---|---|---|
 | **Spine** (`README.md`) | scope gate, install gate, order of operations, hard rules, halt conditions, an index of the rest | **always** — the only part that stays loaded | slowly |
 | **Phase files** | the numbered procedure, one file per phase of the work | when you reach that phase | slowly |
 | **Diagnosis reference** (`DIAGNOSIS.md`) | symptom → discriminating test → cause → lever | when something looks wrong | grows |
+| **Envelope** (`ENVELOPE.md`) | what this instrument can and cannot determine, and which of those is changeable | before promising an answer, and before suggesting a different measurement | slowly |
 | **Lab notebook** | evidence, measurement ledger, **retracted claims and open questions** | before re-investigating anything | only grows |
 | **Runbook** | where it runs, what healthy looks like *with conditions*, current pick-up point | on resume | **every session** |
 
@@ -86,7 +88,81 @@ it. Two properties are non-negotiable:
 
 It grows one entry at a time, the day someone works out what a strange plot meant.
 
-## 6. The runbook, and why there is no single healthy number
+## 6. The envelope — what the measurement could determine at all
+
+A report has two honest jobs: characterize what was observed, and say what could have been
+observed with a different measurement. The second one is worthless without this file, and
+worse than worthless if it is guessed. *"Shorter frames would resolve the fast process"* is
+not useful advice if the detector is already at its maximum rate, and neither the reader
+nor a language model can tell the difference from the data alone.
+
+### It is not the scope gate
+
+These get conflated because both are about limits, and they do different jobs:
+
+| | Protects | Answers | Failure it prevents |
+|---|---|---|---|
+| **Scope gate** (spine §3.2) | the *recipe* | is this doc set applicable to your data? | a procedure applied one step outside where it was measured |
+| **Envelope** (this file) | the *claim* | can this measurement answer the question at all? | an answer that is arithmetically fine and physically unobtainable |
+
+A dataset can be squarely in scope and still unable to support the question being asked.
+The scope gate will not catch that; nothing else will either.
+
+### Three tiers, and why the distinction is the whole point
+
+Sort every limit into one. The tier decides what a report is permitted to say about it.
+
+1. **Fixed** — cannot change within this experiment or this beamline cycle. Beam and
+   detector at a fixed angle, a panel that does not translate, an energy the source
+   cannot reach. State what this makes permanently unmeasurable, and what external input
+   substitutes for it. Laue's is the model case: the 34-ID-E panel sits edge-on to the
+   beam, so any declination "from Z" is declination from an instrument direction with no
+   sample meaning, and the specimen surface normal has to come from measured stage motion
+   instead.
+
+2. **Configured** — set per run and changeable next time. Frame rate, exposure, range,
+   step, whether a particular optic was in the beam. **This is the only tier where a
+   counterfactual has an answer.** Laue again: with a wire or coded aperture each frame is
+   one depth; without one the whole illuminated column superimposes and there is no
+   per-grain depth at all. That changes what may be claimed, not merely how hard it is.
+
+3. **Intrinsic** — the sample or the physics forbids it, and no configuration helps. Same
+   phase either side of an interface has nothing crystallographic to separate it. A
+   single-phase system has no parent to reconstruct.
+
+Tier 2 earns a bounded suggestion. Tiers 1 and 3 earn a plain statement that the quantity
+is not obtainable here, and **no suggestion at all** — a report that proposes changing
+something fixed reads as not knowing the instrument, and costs more trust than the
+observation gained.
+
+### Rules
+
+- **Every limit carries a value, a unit, and where it came from**: measured, from a spec
+  sheet, or from a person. Undated spec-sheet numbers are the most dangerous kind, because
+  they are precise and nobody re-checks them.
+- **An undeclared limit produces no counterfactual.** A report will not propose changing an
+  axis whose bound is not in this file. That is a mechanical control, not an instruction to
+  be careful, which is not a control.
+- **Distinguish "we did not" from "we cannot".** These read identically in a params file
+  and mean opposite things to a reader deciding whether to come back.
+- **Date it and name an owner.** A stale envelope is worse than none: it will confidently
+  recommend something the beamline stopped being able to do a year ago.
+
+### Where the numbers come from
+
+About half are already in the parameter file for the run — the configuration that was
+used. The other half are in nobody's file: the detector's maximum frame rate, whether this
+sample damages and at what dose, stage travel limits, which optics were actually on the
+table that week. That half is expert knowledge that has never been written down, which is
+exactly the same shape as the runbook's healthy-ranges table, and it is the half that
+makes the file worth having.
+
+The subset that carries numbers is also the machine-readable `Envelope` object in SPEC §3b,
+which is what the report computes against. This file is where those numbers get their
+provenance and their prose — the same relationship the procedure has with the notebook
+ledger.
+
+## 7. The runbook, and why there is no single healthy number
 
 The runbook is the only volatile document, and the one most likely to be missing —
 handbook and notebook are natural to write, "what is true right now" is not.
@@ -99,7 +175,7 @@ It ends with a **current pick-up point** that every session updates before it fi
 stale pick-up point is worse than none: the next session re-derives what was already
 known and trusts the rest of the file less.
 
-## 7. Checking it
+## 8. Checking it
 
 ```bash
 beamreport-doc-lint path/to/doc-set/          # check
@@ -114,6 +190,6 @@ symptoms, and that the spine carries a scope gate, an install gate and halt cond
 enforces that belongs in the tree that contains the code, and should run in your
 pre-commit hook.
 
-## 8. Known instances
+## 9. Known instances
 
 See [REGISTRY.md](REGISTRY.md). Reading a live, maintained one beats reading a template.

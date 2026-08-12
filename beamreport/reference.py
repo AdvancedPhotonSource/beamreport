@@ -27,6 +27,8 @@ whatever its author already believed.
 from __future__ import annotations
 
 import re
+from typing import Iterable
+
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -65,11 +67,47 @@ class Entry:
         return score
 
 
-def parse(text: str, source: str = "<string>") -> list[Entry]:
+_LOCAL_HEAD = re.compile(r"^##+\s*local symptoms\s*$", re.I | re.M)
+_LOCAL_ROW = re.compile(r"^\s*\|\s*`?([A-Za-z][\w.]*)`?\s*\|\s*(.*?)\s*\|\s*$", re.M)
+
+
+def local_symptoms(text: str) -> dict[str, str]:
+    """Parse a `## Local symptoms` table into {symptom: what emits it}.
+
+    A technique may have detectors beamreport does not: DFXM's pedestal-dilution and
+    inter-reflection registration checks are real, useful, and nothing generic will ever
+    emit them. Forcing those into the generic vocabulary would rename real knowledge
+    into the wrong shape.
+
+    The table must name **what emits each symptom**, which is the control that keeps this
+    from becoming an escape hatch: a symptom nothing produces is dead text that reads as
+    coverage, which is the same failure the fixed vocabulary existed to prevent.
+    """
+    m = _LOCAL_HEAD.search(text)
+    if not m:
+        return {}
+    block = text[m.end():]
+    nxt = re.search(r"^##+\s", block, re.M)
+    if nxt:
+        block = block[: nxt.start()]
+    out: dict[str, str] = {}
+    for row in _LOCAL_ROW.finditer(block):
+        name, emitter = row.group(1), row.group(2).strip()
+        if name.lower() in ("symptom", "name") or set(name) <= set("-: "):
+            continue                              # header or separator row
+        out[name] = emitter
+    return out
+
+
+def parse(text: str, source: str = "<string>", extra_symptoms: Iterable[str] = ()) -> list[Entry]:
+    known = set(SYMPTOMS) | set(extra_symptoms) | set(local_symptoms(text))
     entries: list[Entry] = []
     marks = list(_ENTRY.finditer(text))
     for i, m in enumerate(marks):
         end = marks[i + 1].start() if i + 1 < len(marks) else len(text)
+        # The declaration table is a `##` heading too, and is not an entry.
+        if _LOCAL_HEAD.match(m.group(0)):
+            continue
         block = text[m.end():end]
         keys = {k.group("key"): k.group("val") for k in _KEY.finditer(block)}
         title = m.group("title")
@@ -77,10 +115,11 @@ def parse(text: str, source: str = "<string>") -> list[Entry]:
         symptom = keys.get("symptom")
         if not symptom:
             raise ReferenceError(f"{source}: entry {title!r} has no `symptom:` key")
-        if symptom not in SYMPTOMS:
+        if symptom not in known:
             raise ReferenceError(
                 f"{source}: entry {title!r} declares unknown symptom {symptom!r}.\n"
-                f"Known symptoms:\n  " + "\n  ".join(sorted(SYMPTOMS))
+                f"Either use a generic symptom:\n  " + "\n  ".join(sorted(SYMPTOMS)) +
+                f"\nor declare {symptom!r} in a `## Local symptoms` table naming what emits it."
             )
 
         sections = {s.group("name").lower(): s.group("body").strip() for s in _SECTION.finditer(block)}

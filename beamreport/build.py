@@ -12,6 +12,7 @@ from pathlib import Path
 
 import numpy as np
 
+from . import envelope as _envelope
 from . import reference as _ref
 from .contract import Provenance, Quality, Results, Sidecar, validate
 from .diagnose import diagnose
@@ -31,6 +32,8 @@ def build(
     diagnosis_reference: str | Path | None = None,
     bounds: dict | None = None,
     nulls: dict | None = None,
+    expectations: dict | None = None,
+    floors: dict | str | Path | None = None,
     subtitle: str = "",
     tiles: list[Tile] | None = None,
     methods: str = "",
@@ -46,7 +49,12 @@ def build(
     """
     warnings = validate(results, provenance, quality=quality, sidecar=sidecar, strict=strict)
 
-    findings = diagnose(results, sidecar=sidecar, quality=quality, bounds=bounds, nulls=nulls)
+    # A path means an ENVELOPE.md: the floors come from the technique's declared
+    # limits, never from the data being judged, which would be circular.
+    if isinstance(floors, (str, Path)):
+        floors = _envelope.floors(floors)
+    findings = diagnose(results, sidecar=sidecar, quality=quality, bounds=bounds,
+                        nulls=nulls, expectations=expectations, floors=floors)
     findings += list(extra_findings or [])
 
     entries: list = []
