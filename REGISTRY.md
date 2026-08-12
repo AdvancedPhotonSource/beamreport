@@ -48,14 +48,3 @@ were missing: NF's scope paragraph said to re-derive a convention "rather than i
 it" and never said to **stop**; the Laue spine had no scope gate, no install gate and no
 halt list at all, despite being the best-structured document of the three. Both were real
 gaps, not regex pedantry.
-
-## A note on what the FF set cost
-
-It came out of an existing 1378-line handbook, and the split itself was mechanical — every
-source line assigned to exactly one output file, verified. The parts that took real work
-were the two that did not exist before: the **runbook** (nobody writes "what is true right
-now" unprompted) and the **diagnosis reference** (which only gets written the day someone
-works out what a strange plot meant, and only if they write it down that day).
-
-Budget accordingly. The split is an afternoon; the runbook is a conversation with whoever
-runs the instrument.
