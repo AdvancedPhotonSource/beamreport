@@ -200,3 +200,21 @@ def test_prose_envelope_is_not_failed_for_having_no_table(tmp_path):
         "## Fixed\nThe panel is edge-on.\n## Configured\nFrame time, bounded by readout.\n"
         "## Intrinsic\nSame-phase interfaces do not separate.\n")
     assert not any("limits them" in p for p in check_set(tmp_path))
+
+
+def test_spine_must_link_its_phase_files(tmp_path):
+    """The Laue spine named Phase 0..6 five times and linked none of the seven files,
+    leaving the whole procedure undiscoverable to a reader who trusted the spine."""
+    _full(tmp_path)
+    (tmp_path / "phase-0-survey.md").write_text("# survey\n")
+    (tmp_path / "phase-1-run.md").write_text("# run\n")
+    problems = check_set(tmp_path)
+    assert any("does not link" in p and "phase-0-survey.md" in p for p in problems)
+
+
+def test_spine_that_links_its_phases_passes(tmp_path):
+    _full(tmp_path)
+    (tmp_path / "phase-0-survey.md").write_text("# survey\n")
+    (tmp_path / "README.md").write_text(
+        SPINE_OK + "\n[survey](phase-0-survey.md)\n")
+    assert not any("does not link" in p for p in check_set(tmp_path))

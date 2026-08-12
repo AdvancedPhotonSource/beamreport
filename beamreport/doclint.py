@@ -145,6 +145,24 @@ def check_set(root: Path) -> list[Problem]:
                 f"SPINE      {SPINE} is {len(spine.splitlines())} lines -- the spine is "
                 f"the part that stays loaded; move detail into phase files"))
 
+    # 2b. The spine indexes the phase files that exist beside it.
+    #
+    # The Laue spine named "Phase 0".."Phase 6" five times and linked none of the seven
+    # files. A session that took the spine at its word -- "the one file you keep loaded"
+    # -- read the invariants and the worked example and never learned the procedure was
+    # in separate files; it found them only by listing the directory. Nothing else in
+    # this contract can see that, because every artifact was present and well-formed.
+    phases = sorted(p.name for p in root.glob("phase-*.md"))
+    if phases and spine:
+        linked = set(re.findall(r"phase-[0-9][\w.-]*\.md", spine))
+        missing = [p for p in phases if p not in linked]
+        if missing:
+            out.append(Problem(
+                f"SPINE      {SPINE} does not link {len(missing)} of {len(phases)} phase "
+                f"file(s): {', '.join(missing[:4])}{'...' if len(missing) > 4 else ''} -- "
+                f"a spine that names its phases without linking them leaves them "
+                f"undiscoverable to a reader who trusts it"))
+
     # 3. The diagnosis reference parses, and its symptoms are real.
     if DIAGNOSIS in files:
         try:
