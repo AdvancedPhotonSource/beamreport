@@ -26,7 +26,11 @@ from .reference import ReferenceError, parse as parse_reference
 SPINE = "README.md"
 DIAGNOSIS = "DIAGNOSIS.md"
 RUNBOOK = "RUNBOOK.md"
-NOTEBOOK_HINT = ("LAB_NOTEBOOK.md", "NOTEBOOK.md")
+# A glob, not a filename: DOCS_SPEC §2 says one notebook PER CAMPAIGN, so a
+# technique with three campaigns has three, named for them. Requiring one exact
+# name would push a project into merging campaign records, which is the opposite
+# of what the rule is for.
+NOTEBOOK_GLOB = ("*LAB_NOTEBOOK*.md", "*Lab_Notebook*.md", "*NOTEBOOK*.md")
 
 # What the spine must demonstrably carry. Matched loosely on purpose: this is a
 # contract about substance, and pinning exact wording would make it a style
@@ -68,10 +72,12 @@ def check_set(root: Path) -> list[Problem]:
                       (RUNBOOK, "'what is true right now' is the document that goes missing")):
         if want not in files:
             out.append(Problem(f"MISSING    {want} -- {why}"))
-    if not any(n in files for n in NOTEBOOK_HINT):
+    # `any(list(...))`, not `any(root.glob(...))`: a generator object is always
+    # truthy, so the unlisted form made this check silently never fire.
+    if not any(list(root.glob(g)) for g in NOTEBOOK_GLOB):
         out.append(Problem(
-            f"MISSING    {' or '.join(NOTEBOOK_HINT)} -- the evidence and the "
-            f"retractions; without it a refuted idea comes back"))
+            "MISSING    a lab notebook (*LAB_NOTEBOOK*.md) -- the evidence and the "
+            "retractions; without it a refuted idea comes back"))
 
     # 2. The spine carries what a context-free reader needs.
     spine = _read(files.get(SPINE, root / SPINE))

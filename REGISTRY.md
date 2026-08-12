@@ -11,8 +11,8 @@ request into this one.
 | Technique | Doc set | Repository | Status |
 |---|---|---|---|
 | FF-HEDM (far-field 3DXRD) | `manuals/ff-hedm/` | [MIDAS](https://github.com/marinerhemant/MIDAS) | complete — spine, 5 phases, diagnosis, runbook, notebook |
-| NF-HEDM (near-field) | `manuals/NF_HEDM_Handbook.md` | MIDAS | **not split** — handbook + notebook only; no diagnosis reference, no runbook |
-| Laue microdiffraction | `scripts/pipeline/Laue_Handbook.md` | LaueMatching (private) | **not split** — handbook + 2 notebooks + a runbook; phase-structured already |
+| NF-HEDM (near-field) | `manuals/nf-hedm/` | MIDAS | complete — spine, 6 phases, parameter reference, diagnosis, runbook, notebook |
+| Laue microdiffraction | `scripts/pipeline/laue/` | LaueMatching (private) | complete — spine, 7 phases, diagnosis, runbook, **two** campaign notebooks |
 
 ## What "complete" means
 
@@ -30,6 +30,24 @@ beamreport-doc-lint --init docs/techniques/<name>/
 
 Then fill it in beside your code, wire the lint into your pre-commit hook alongside
 whatever checks your citations, and add a row above.
+
+## What the three cost, and where the time went
+
+All three passed `beamreport-doc-lint` on the same day. The splits were mechanical — every
+source line assigned to exactly one output file, verified — and took a fraction of the
+effort. What actually cost time was the two artifacts that did not exist anywhere:
+
+- **The runbook.** Nobody writes "what is true right now" unprompted, and it cannot be
+  derived from the handbook. It is a conversation with whoever runs the instrument.
+- **The diagnosis reference.** It only gets written the day someone works out what a
+  strange plot meant, and only if they write it down that day. FF had one already; NF and
+  Laue did not, and theirs had to be reconstructed from campaign notebooks.
+
+The linter also refused two of the three spines for things their authors had not noticed
+were missing: NF's scope paragraph said to re-derive a convention "rather than inheriting
+it" and never said to **stop**; the Laue spine had no scope gate, no install gate and no
+halt list at all, despite being the best-structured document of the three. Both were real
+gaps, not regex pedantry.
 
 ## A note on what the FF set cost
 
