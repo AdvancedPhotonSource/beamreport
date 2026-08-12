@@ -22,6 +22,7 @@ from pathlib import Path
 
 _SEC4 = re.compile(r"^##+\s*\d*\.?\s*derived limits.*$", re.I | re.M)
 _IDENT = re.compile(r"`([A-Za-z_][\w]*)`")
+_IDENT_DOTTED = re.compile(r"`([A-Za-z_][\w.]*)`")
 # The WHOLE limit cell must be a bare quantity: a number and an optional unit.
 #
 # An earlier version searched for any number anywhere in the cell and pulled "1.0" out
@@ -66,6 +67,60 @@ def floors(path: str | Path) -> dict[str, tuple[float, str]]:
             continue                       # the envelope declined to give a number
         prov = cells[2] if len(cells) > 2 else ""
         out[ident.group(1)] = (float(num.group(1)), prov)
+    return out
+
+
+_SEC_FIXED = re.compile(r"^##+\s*\d*\.?\s*fixed\b.*$", re.I | re.M)
+_SEC_INTRINSIC = re.compile(r"^##+\s*\d*\.?\s*intrinsic\b.*$", re.I | re.M)
+
+
+def _section(text: str, head: re.Pattern) -> str:
+    m = head.search(text)
+    if not m:
+        return ""
+    block = text[m.end():]
+    nxt = re.search(r"^##+\s", block, re.M)
+    return block[: nxt.start()] if nxt else block
+
+
+def governed(path: str | Path, known: set[str] | None = None) -> dict[str, dict]:
+    """Symptoms the envelope declares are fixed or intrinsic: {symptom: {...}}.
+
+    A diagnosis entry can name a lever for something the instrument cannot change. On
+    Au3 the report fired `trend.amplitude_growing`, matched an entry proposing an Lsd
+    recalibration, and printed it as advice -- while the same doc set's envelope said
+    that residual is a fixed property of an extended beam and must NOT be "fixed". Both
+    documents were right; nothing connected them, so the page recommended the one thing
+    the technique already knew was wrong.
+
+    A row in the Fixed or Intrinsic tier opts in by naming the symptom in backticks,
+    the same convention section 4 uses for floors. Adding the backticks is the whole
+    mechanism.
+    """
+    p = Path(path)
+    if not p.is_file():
+        return {}
+    text = p.read_text(errors="replace")
+    out: dict[str, dict] = {}
+    for tier, head in (("fixed", _SEC_FIXED), ("intrinsic", _SEC_INTRINSIC)):
+        block = _section(text, head)
+        for line in block.splitlines():
+            if "|" not in line:
+                continue
+            cells = [c.strip() for c in line.strip().strip("|").split("|")]
+            if len(cells) < 2 or set("".join(cells)) <= set("-: "):
+                continue
+            for name in _IDENT_DOTTED.findall(line):
+                if known is not None and name not in known:
+                    continue
+                out[name] = {
+                    "tier": tier,
+                    # The consequence column carries the "why", which is what a reader
+                    # needs; fall back to the whole row when the shape is unexpected.
+                    "text": cells[3] if len(cells) > 3 else " | ".join(cells),
+                    "property": cells[0],
+                    "substitute": cells[4] if len(cells) > 4 else "",
+                }
     return out
 
 

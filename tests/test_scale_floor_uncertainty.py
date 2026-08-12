@@ -8,7 +8,7 @@ not distinguish it from a detector that always fires.
 import numpy as np
 import pytest
 
-from beamreport import Provenance, Results, Sidecar, build, envelope
+from beamreport import Finding, Provenance, Results, Sidecar, build, envelope
 from beamreport.diagnose import (
     at_floor,
     diagnose,
@@ -191,3 +191,79 @@ def test_build_reads_floors_from_an_envelope_path(tmp_path):
         out=tmp_path / "r.html",
     )
     assert "measure the pipeline" in out.read_text()
+
+
+# --- what the Au3 adversarial pass found (2026-08-12) -------------------------
+
+ENV_GOV = """
+# T envelope
+**Last checked: 2026-08-12** - Owner: A
+## 1. Fixed
+| Property | Value | Provenance | What it makes unobtainable | Substitute |
+|---|---|---|---|---|
+| Beam shape (`trend.amplitude_growing`) | line | station | Position along the beam is weakly constrained; not a defect. | Report orientation instead. |
+## 2. Configured
+| p | used | range | limited by | buys |
+|---|---|---|---|---|
+| frame time | 10 ms | 5-100 | limited by readout | speed |
+## 3. Intrinsic
+## 4. Derived limits
+"""
+
+
+def test_envelope_governance_is_parsed():
+    import tempfile, pathlib
+    from beamreport import envelope
+    from beamreport.finding import SYMPTOMS
+    with tempfile.TemporaryDirectory() as d:
+        p = pathlib.Path(d) / "ENVELOPE.md"
+        p.write_text(ENV_GOV)
+        g = envelope.governed(p, known=set(SYMPTOMS))
+    assert g["trend.amplitude_growing"]["tier"] == "fixed"
+    assert "not a defect" in g["trend.amplitude_growing"]["text"]
+
+
+def test_governed_finding_withholds_its_lever(tmp_path):
+    """The envelope outranks the reference. On Au3 the report recommended an Lsd
+    recalibration for a residual the same doc set calls a fixed property."""
+    from beamreport.render import Page, render
+    f = Finding(symptom="trend.amplitude_growing", level="systematic",
+                title="amplitude grows", statement="s",
+                lever="Refine Lsd against a calibrant.",
+                governed={"tier": "fixed", "text": "not a defect", "property": "Beam shape",
+                          "substitute": ""})
+    html = render(Page(title="t", provenance={"a": "b"}, findings=[f]))
+    assert "Lever, withheld" in html
+    assert "envelope says this is fixed" in html
+    assert '<p class="f-l">' not in html          # never rendered as advice
+
+
+def test_ungoverned_finding_still_gives_its_lever():
+    from beamreport.render import Page, render
+    f = Finding(symptom="trend.amplitude_growing", level="systematic",
+                title="t", statement="s", lever="Recalibrate.")
+    html = render(Page(title="t", provenance={"a": "b"}, findings=[f]))
+    assert '<p class="f-l">' in html and "withheld" not in html
+
+
+def test_narrow_azimuthal_coverage_is_refused_not_fitted():
+    """A sliver of the circle gave amplitude 1310 um against a ~150 um real scale."""
+    from beamreport.diagnose import fit_trend
+    rng = RNG(11)
+    eta = np.concatenate([rng.uniform(-96, -94, 20), rng.uniform(94, 96, 20)])
+    r = 150.0 * np.cos(np.radians(eta)) + rng.normal(0, 10, eta.size)
+    f = fit_trend(eta, r, "deg")
+    assert f.get("periodic_refused")
+    assert f["model"] != "periodic"
+
+
+def test_shrinking_amplitude_is_not_called_growing():
+    """abs(growth) > 0.5 labelled a large shrink as 'growing'."""
+    from beamreport.diagnose import amplitude_across
+    rng = RNG(12)
+    eta = rng.uniform(0, 360, 4000)
+    other = rng.choice([1., 2., 3., 4., 5.], 4000)
+    r = (6.0 - other) * 40.0 * np.cos(np.radians(eta)) + rng.normal(0, 3, eta.size)
+    out = amplitude_across(eta, r, other, "deg")
+    assert out["verdict"] == "shrinking"
+    assert out["growth_fraction"] < 0

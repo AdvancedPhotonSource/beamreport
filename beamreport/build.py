@@ -16,7 +16,7 @@ from . import envelope as _envelope
 from . import reference as _ref
 from .contract import Provenance, Quality, Results, Sidecar, validate
 from .diagnose import diagnose
-from .finding import Finding, fmt
+from .finding import SYMPTOMS, Finding, fmt
 from .render import Page, Plate, Tile, write
 
 
@@ -34,6 +34,7 @@ def build(
     nulls: dict | None = None,
     expectations: dict | None = None,
     floors: dict | str | Path | None = None,
+    envelope: str | Path | None = None,
     subtitle: str = "",
     tiles: list[Tile] | None = None,
     methods: str = "",
@@ -51,6 +52,8 @@ def build(
 
     # A path means an ENVELOPE.md: the floors come from the technique's declared
     # limits, never from the data being judged, which would be circular.
+    if envelope is not None and floors is None:
+        floors = _envelope.floors(envelope)
     if isinstance(floors, (str, Path)):
         floors = _envelope.floors(floors)
     findings = diagnose(results, sidecar=sidecar, quality=quality, bounds=bounds,
@@ -61,6 +64,15 @@ def build(
     if diagnosis_reference is not None:
         entries = _ref.load(diagnosis_reference)
         _ref.apply(findings, entries)
+    # The envelope gets the last word on levers: a technique that has declared a
+    # quantity unchangeable must not have a report recommend changing it.
+    if envelope is not None:
+        known = set(SYMPTOMS) | {e.symptom for e in entries}
+        gov = _envelope.governed(envelope, known=known)
+        for f in findings:
+            if f.symptom in gov:
+                f.governed = gov[f.symptom]
+
     cov = _ref.coverage(findings, entries)
 
     if sidecar is None:

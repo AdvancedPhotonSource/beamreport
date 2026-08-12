@@ -95,11 +95,21 @@ def fit_trend(coord: np.ndarray, resid: np.ndarray, unit: str = "") -> dict:
     period = _period_for(unit)
     if period:
         w = 2 * np.pi / period
-        coef_p, rss_p = _lstsq(np.column_stack([ones, np.cos(w * c), np.sin(w * c)]), r)
-        out["bic"]["periodic"] = _bic(rss_p, n, 3)
-        amp = float(np.hypot(coef_p[1], coef_p[2]))
-        phase = float(np.degrees(np.arctan2(coef_p[2], coef_p[1])))
-        out["params"]["periodic"] = {"offset": float(coef_p[0]), "amplitude": amp, "phase_deg": phase}
+        A = np.column_stack([ones, np.cos(w * c), np.sin(w * c)])
+        # Refuse a sinusoid fitted to a sliver of the circle. With eta clustered near
+        # +/-90 the cos/sin columns become collinear and least squares returns an
+        # amplitude many times the real residual scale -- a number, not a measurement.
+        cond = float(np.linalg.cond(A))
+        out["cond_periodic"] = cond
+        if cond > 20.0:
+            out["periodic_refused"] = "coverage too narrow (design matrix ill-conditioned)"
+        else:
+            coef_p, rss_p = _lstsq(A, r)
+            out["bic"]["periodic"] = _bic(rss_p, n, 3)
+            amp = float(np.hypot(coef_p[1], coef_p[2]))
+            phase = float(np.degrees(np.arctan2(coef_p[2], coef_p[1])))
+            out["params"]["periodic"] = {
+                "offset": float(coef_p[0]), "amplitude": amp, "phase_deg": phase}
 
     best = min(out["bic"], key=out["bic"].get)
     out["model"] = best
@@ -130,32 +140,55 @@ def amplitude_across(
     if c.size < 8 * n_bins:
         return {"verdict": "insufficient", "n": int(c.size)}
 
-    edges = np.quantile(o, np.linspace(0, 1, n_bins + 1))
-    edges[-1] += 1e-9
+    # Bin by unique value when the second coordinate is discrete and low-cardinality.
+    # Quantile edges on such a coordinate collapse: on a 5-ring FF dataset with counts
+    # 32/20/48/96/32 the edges came out [1,3,4,4,5], one bin empty, and the verdict
+    # then rested on a 3-point line fit that looked like a real trend.
+    uniq = np.unique(o)
+    if uniq.size <= n_bins + 2:
+        bins = [(u, o == u) for u in uniq]
+    else:
+        edges = np.quantile(o, np.linspace(0, 1, n_bins + 1))
+        edges[-1] += 1e-9
+        bins = [(None, (o >= edges[i]) & (o < edges[i + 1])) for i in range(n_bins)]
+
     centres, amps = [], []
-    for i in range(n_bins):
-        sel = (o >= edges[i]) & (o < edges[i + 1])
+    for val, sel in bins:
         if sel.sum() < 8:
             continue
+        # Compare LIKE WITH LIKE: the sinusoid amplitude in every bin. Taking whichever
+        # model won BIC per bin meant a bin fitted as linear contributed a half-swing to
+        # a trend that is supposed to be about sinusoid amplitudes.
         f = fit_trend(c[sel], r[sel], unit)
-        if f["model"] in ("insufficient", "constant"):
-            continue
+        pp = f.get("params", {}).get("periodic")
+        if pp is None:
+            continue                       # refused or not angular -- no comparable number
         centres.append(float(np.median(o[sel])))
-        amps.append(float(f["amplitude"]))
+        amps.append(float(pp["amplitude"]))
 
-    if len(amps) < 3:
-        return {"verdict": "insufficient", "n_bins_used": len(amps)}
+    # Four is the floor for a defensible slope. Three points through a two-parameter
+    # fit leaves one residual degree of freedom, which is not enough to distinguish a
+    # trend from the scatter between bins.
+    if len(amps) < 4:
+        return {"verdict": "insufficient", "n_bins_used": len(amps),
+                "why": "fewer than 4 usable bins in the second coordinate"}
 
     centres_a, amps_a = np.array(centres), np.array(amps)
     slope = float(np.polyfit(centres_a, amps_a, 1)[0])
     mean_amp = float(np.mean(amps_a))
     # Fractional change in amplitude across the observed span of `other`.
     growth = slope * float(np.ptp(centres_a)) / mean_amp if mean_amp else float("nan")
-    verdict = "growing" if abs(growth) > 0.5 else "constant"
+    if growth > 0.5:
+        verdict = "growing"
+    elif growth < -0.5:
+        verdict = "shrinking"      # a real, different case; not a growing amplitude
+    else:
+        verdict = "constant"
     return {
         "verdict": verdict,
         "growth_fraction": growth,
         "mean_amplitude": mean_amp,
+        "n_bins_used": len(amps),
         "bin_centres": centres,
         "bin_amplitudes": amps,
     }
@@ -641,13 +674,34 @@ def _sidecar_findings(results, sidecar, bounds) -> list[Finding]:
             extra = ""
             others = [x for x in coords if x != cname]
             if others and f["model"] == "periodic":
-                amp = amplitude_across(c, r, sidecar.column(others[0]), cunit)
-                if amp["verdict"] in ("constant", "growing"):
+                # Test every other coordinate, not just the first one in the list.
+                # Picking others[0] silently chose `ring_nr` (an index) over `r_exp_um`
+                # (the radius the reference's constant-vs-growing rule is actually about),
+                # and the two are not linearly related.
+                best, bestname, agree = None, None, []
+                for oname in others:
+                    a = amplitude_across(c, r, sidecar.column(oname), cunit)
+                    if a["verdict"] in ("constant", "growing", "shrinking"):
+                        agree.append((oname, a["verdict"]))
+                        if best is None or a["n_bins_used"] > best["n_bins_used"]:
+                            best, bestname = a, oname
+                if best is not None:
+                    amp = best
                     sym = f"trend.amplitude_{amp['verdict']}"
                     extra = (
-                        f" Across bins of {others[0]} the amplitude is {amp['verdict']} "
-                        f"(fractional change {fmt(amp['growth_fraction'])})."
+                        f" Across {amp['n_bins_used']} bins of {bestname} the amplitude is "
+                        f"{amp['verdict']} (fractional change {fmt(amp['growth_fraction'])})."
                     )
+                    if len(agree) > 1:
+                        # Not independent confirmation: these axes are usually proxies
+                        # for one another (ring index, ring radius and scattering angle
+                        # all track Bragg angle), so agreement between them is one test
+                        # reported several times.
+                        extra += (
+                            f" {len(agree)} of {len(others)} coordinates gave a verdict"
+                            f" ({', '.join(f'{n}:{v}' for n, v in agree)}); treat these as"
+                            f" one test unless the axes are known to be independent."
+                        )
             out.append(Finding(
                 symptom=sym, level="systematic",
                 title=f"{ch} varies with {cname} ({f['model']})",

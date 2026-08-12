@@ -20,6 +20,7 @@ SYMPTOMS: dict[str, str] = {
     "trend.linear": "a residual trends linearly with a coordinate",
     "trend.amplitude_constant": "a trend's amplitude is constant across bins of another coordinate",
     "trend.amplitude_growing": "a trend's amplitude grows with another coordinate",
+    "trend.amplitude_shrinking": "a trend's amplitude falls with another coordinate",
     "systematic.common_offset": "per-object offsets share a mean that dominates their scatter",
     "systematic.per_object": "per-object offsets are nonzero on average but scatter dominates",
     "split.bimodal": "a per-object aggregate splits into two populations",
@@ -63,6 +64,10 @@ class Finding:
     cause: str | None = None
     test: str | None = None
     lever: str | None = None
+
+    # Set when the technique's envelope declares this symptom fixed or intrinsic. The
+    # observation still stands; the lever stops being advice.
+    governed: dict | None = None
 
     @property
     def explained(self) -> bool:

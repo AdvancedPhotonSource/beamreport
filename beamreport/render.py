@@ -112,8 +112,26 @@ def _finding(f: Finding) -> str:
         parts.append(f'<p class="f-t"><b>Test.</b> {_e(f.test)}</p>')
     if f.cause:
         parts.append(f'<p class="f-c"><b>Cause.</b> {_e(f.cause)}</p>')
-    if f.lever:
+    if f.governed:
+        # The envelope outranks the reference on levers. Both documents can be right
+        # while the page is wrong, which is what happened on Au3: a lever proposing an
+        # Lsd recalibration for a residual the envelope calls a fixed property of the
+        # beam. The observation stays; the action does not.
+        g = f.governed
+        tier = "fixed for this instrument" if g["tier"] == "fixed" else "intrinsic to the measurement"
+        parts.append(
+            f'<div class="gov"><b>The envelope says this is {_e(tier)}.</b> '
+            f'{_e(g["property"])} — {_e(g["text"])}'
+            + (f' <i>{_e(g["substitute"])}</i>' if g.get("substitute") else "")
+            + '<br>Read the finding above as a characterisation of this measurement, '
+              'not as something to correct.</div>')
+    if f.lever and not f.governed:
         parts.append(f'<p class="f-l"><b>Lever.</b> {_e(f.lever)}</p>')
+    elif f.lever and f.governed:
+        parts.append(
+            f'<p class="f-l f-l-void"><b>Lever, withheld.</b> The diagnosis reference '
+            f'would suggest: “{_e(f.lever)}” — but the envelope declares this '
+            f'unchangeable, so it is not advice here.</p>')
     elif f.symptom:
         parts.append(
             f'<p class="f-none">No diagnosis-reference entry for <code>{_e(f.symptom)}</code>. '
