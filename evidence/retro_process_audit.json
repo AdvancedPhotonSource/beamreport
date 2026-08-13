@@ -1,0 +1,263 @@
+[
+  {
+    "preregister": "~/Desktop/analysis/ce_jul26/PREREGISTER.md",
+    "n_results_files": 0,
+    "verdict": "NO-RESULTS-FILE",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "Written **2026-08-02, before any diffuse-scattering data was extracted.** Targets below are fixed. The analysis is judged against them, not against a "
+  },
+  {
+    "preregister": "~/Desktop/analysis/pokharel_jun25_nf/PREREGISTER.md",
+    "n_results_files": 1,
+    "verdict": "RETRACTED",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "> The projection of the rotation axis on the detector (BC_y, BC_z) and the > absolute sample-to-detector distance L\u2081 at DetZ = 9 mm can be recovered, "
+  },
+  {
+    "preregister": "~/opt/MIDAS/PREREGISTER_crosseval.md",
+    "n_results_files": 0,
+    "verdict": "NO-RESULTS-FILE",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "registered so the fork below is fixed in advance. Prior negatives not to re-tread: `PREREGISTER_grain_coupling.md` (batching, iterations), `PREREGISTE"
+  },
+  {
+    "preregister": "~/opt/MIDAS/PREREGISTER_ebsd_ground_truth.md",
+    "n_results_files": 0,
+    "verdict": "NO-RESULTS-FILE",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "Fixed **2026-08-06, before any FF\u2194EBSD comparison was computed.** Gate 0 (below) was run first and is reported here because it uses *no FF data* and d"
+  },
+  {
+    "preregister": "~/opt/MIDAS/PREREGISTER_grain_coupling.md",
+    "n_results_files": 0,
+    "verdict": "NO-RESULTS-FILE",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "> **The python refiner's position deficit is caused by optimising every grain > in a block jointly under ONE L-BFGS instance. Grains are independent >"
+  },
+  {
+    "preregister": "~/opt/MIDAS/PREREGISTER_matching.md",
+    "n_results_files": 0,
+    "verdict": "NO-RESULTS-FILE",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "> **c-orig and the torch refiner pair observed spots to predicted reflections > differently, so from the first step they are descending different obje"
+  },
+  {
+    "preregister": "~/opt/MIDAS/PREREGISTER_refiner_gold_standard.md",
+    "n_results_files": 0,
+    "verdict": "NO-RESULTS-FILE",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "> **One FF refiner implementation is systematically more accurate than the > others against KNOWN ground truth, consistently across a realistic noise "
+  },
+  {
+    "preregister": "~/opt/MIDAS/packages/midas_dct_tt/dev/paper/PREREGISTER.md",
+    "n_results_files": 0,
+    "verdict": "NO-RESULTS-FILE",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "> **A1.** Inverting TT data with an **exact finite-strain** model recovers `F` > with materially less bias than inverting the same data with the **lin"
+  },
+  {
+    "preregister": "~/opt/MIDAS/packages/midas_dct_tt/dev/paper/PREREGISTER_bandnormal.md",
+    "n_results_files": 0,
+    "verdict": "NO-RESULTS-FILE",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "Recoverability is governed by the angle between the band normal and the **misorientation axis** (tilt-type vs twist-type band arrangement), *not* by t"
+  },
+  {
+    "preregister": "~/opt/MIDAS/packages/midas_dct_tt/dev/paper/PREREGISTER_bandnormal_noise.md",
+    "n_results_files": 0,
+    "verdict": "NO-RESULTS-FILE",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "(one draw per equal-width stratum). `--stratified`, now the default advice, plus an automatic warning when two phase levels land within 10% of a perio"
+  },
+  {
+    "preregister": "~/opt/MIDAS/packages/midas_dct_tt/dev/paper/PREREGISTER_intensity.md",
+    "n_results_files": 0,
+    "verdict": "NO-RESULTS-FILE",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": false,
+    "hypothesis": "> Reconstructing grain shape by fitting voxel occupancy to measured topograph > GREY LEVELS -- treating the topograph as a line integral rather than a"
+  },
+  {
+    "preregister": "~/opt/MIDAS/packages/midas_dct_tt/dev/paper/PREREGISTER_masks.md",
+    "n_results_files": 0,
+    "verdict": "NO-RESULTS-FILE",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "One falsifiable claim: > Selecting topograph pixels by whether their measured rocking-peak frame agrees > with the position **predicted per-pixel by t"
+  },
+  {
+    "preregister": "~/opt/MIDAS/packages/midas_defect/dev/paper/PREREGISTER.md",
+    "n_results_files": 0,
+    "verdict": "NO-RESULTS-FILE",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "**H1 (MBD):** The systematic intensity asymmetry between the two Ewald-sphere crossings of a *weak* reflection (9R n\u00b7G/3 satellites, fault relrods) is"
+  },
+  {
+    "preregister": "~/opt/MIDAS/packages/midas_dfxm/dev/paper/runs/burgers_sign_snr/PREREGISTER.md",
+    "n_results_files": 0,
+    "verdict": "NO-RESULTS-FILE",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "Date fixed (before data): 2026-07-31. Fixed BEFORE running any of the study below. ## Motivation `/verify` on the paper's Burgers-sign claim returned "
+  },
+  {
+    "preregister": "~/opt/MIDAS/packages/midas_dfxm/dev/paper/runs/csvsb_cdw/PREREGISTER.md",
+    "n_results_files": 0,
+    "verdict": "NO-RESULTS-FILE",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "Date fixed (before data): 2026-07-31. Written BEFORE the CsV3Sb5 CDW + Friedel-pair data arrives from Zahir Islam. Decision rules below are fixed now;"
+  },
+  {
+    "preregister": "~/opt/MIDAS/packages/midas_dfxm/dev/paper/runs/csvsb_cdw/PREREGISTER_PHASESEP.md",
+    "n_results_files": 1,
+    "verdict": "REFUTED",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "Date fixed: **2026-08-04**, before computing any correlation, segmentation or length scale on the satellite maps. Written after the descriptive work r"
+  },
+  {
+    "preregister": "~/opt/MIDAS/packages/midas_dfxm/dev/paper/runs/csvsb_cdw/PREREGISTER_RAMP.md",
+    "n_results_files": 1,
+    "verdict": "UNRESOLVED",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "**The structural response to the CDW transition is NOT spatially uniform across the 32 um field of view**: per-pixel transition signatures occur at te"
+  },
+  {
+    "preregister": "~/opt/MIDAS/packages/midas_dfxm/dev/paper/runs/csvsb_cdw/PREREGISTER_SEGMENTATION.md",
+    "n_results_files": 1,
+    "verdict": "REFUTED",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "Date fixed: **2026-08-04**. Written after measuring the *descriptive* quantities listed under \"Facts already measured\" below, and BEFORE fitting or in"
+  },
+  {
+    "preregister": "~/opt/MIDAS/packages/midas_dfxm/dev/paper/runs/csvsb_cdw/PREREGISTER_STRAIN.md",
+    "n_results_files": 0,
+    "verdict": "NO-RESULTS-FILE",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": false,
+    "hypothesis": "The two fine-sampled theta-rocking scans jointly constrain a **spatially resolved lattice distortion field** at 3.2 K, separating an in-plane from a c"
+  },
+  {
+    "preregister": "~/opt/MIDAS/packages/midas_dfxm/dev/paper/runs/csvsb_cdw/PREREGISTER_SUBRES.md",
+    "n_results_files": 1,
+    "verdict": "RETRACTED",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "Date fixed: **2026-08-04**, written BEFORE loading a single CsV3Sb5 detector frame. Only the dataset *metadata* (motor CSVs, README, analysis scripts)"
+  },
+  {
+    "preregister": "~/opt/MIDAS/packages/midas_dfxm/dev/paper/runs/csvsb_cdw/PREREGISTER_TWIN.md",
+    "n_results_files": 1,
+    "verdict": "REFUTED",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "redesign so the failure is not quietly replaced: - **Gate T0 FAILED**: level index vs peak amplitude r = **+0.237** against a pre-registered |r| < 0.2"
+  },
+  {
+    "preregister": "~/opt/MIDAS/packages/midas_dfxm/dev/paper/runs/friedel_depth/PREREGISTER.md",
+    "n_results_files": 0,
+    "verdict": "NO-RESULTS-FILE",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "Date fixed (before data): 2026-07-31. Written BEFORE the Friedel-pair frames (from Jayden's thesis / 33-ID-D, to be sent by Zahir Islam) arrive. Decis"
+  },
+  {
+    "preregister": "~/opt/MIDAS/packages/midas_dfxm/dev/paper/runs/multimodal_capstone/PREREGISTER.md",
+    "n_results_files": 1,
+    "verdict": "CONFIRMED",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "Dated 2026-08-04. Fixed BEFORE running the forward/inverse. This is the \"Fig 1c\" capstone: one synthetic grain, three co-registered maps, forward-mode"
+  },
+  {
+    "preregister": "~/opt/MIDAS/packages/midas_dfxm/dev/paper/runs/real_rocking_shape/PREREGISTER.md",
+    "n_results_files": 1,
+    "verdict": "RETRACTED",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "**Date fixed: 2026-08-04.** Written *before* any rocking curve was extracted, fitted or plotted. Only instrument metadata (below) was read beforehand;"
+  },
+  {
+    "preregister": "~/opt/MIDAS/packages/midas_dfxm/dev/paper/runs/real_rocking_shape/PREREGISTER_DIAMOND.md",
+    "n_results_files": 1,
+    "verdict": "RETRACTED",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "**Date fixed: 2026-08-04**, before any rocking curve, width or shape statistic was computed from the frames. Only the HDF5 *structure* and the goniome"
+  },
+  {
+    "preregister": "~/opt/MIDAS/packages/midas_dfxm/dev/paper/runs/strainwave_recon/PREREGISTER.md",
+    "n_results_files": 1,
+    "verdict": "CONFIRMED",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "**Date fixed: 2026-08-04**, before any per-pixel map or strain number was computed. The pumped/unpumped *integrated* rocking widths (4.799 / 7.015 mde"
+  },
+  {
+    "preregister": "~/opt/MIDAS/packages/midas_dfxm/dev/paper/runs/takagi_taupin/PREREGISTER_kin_vs_dyn.md",
+    "n_results_files": 0,
+    "verdict": "NO-RESULTS-FILE",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "Date fixed (before running): 2026-08. Fixed BEFORE seeing the result. ## Hypothesis (one falsifiable sentence) Inverting DYNAMICAL DFXM contrast (thic"
+  },
+  {
+    "preregister": "~/opt/MIDAS/packages/midas_dfxm/dev/paper/runs/wave_velocity/PREREGISTER.md",
+    "n_results_files": 1,
+    "verdict": "CONFIRMED",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": false,
+    "hypothesis": "**Date fixed: 2026-08-04**, before any wave position or velocity was computed from Run 538. Only the file structure was inspected (no delay axis in th"
+  },
+  {
+    "preregister": "~/opt/beamreport/PREREGISTER_docset_effect.md",
+    "n_results_files": 0,
+    "verdict": "NO-RESULTS-FILE",
+    "declares_null": true,
+    "declares_refute": true,
+    "declares_effect_size": true,
+    "hypothesis": "> Giving an agent a technique doc set reduces the number of **unsupported claims** > it makes in an analysis report, relative to the same agent, same "
+  }
+]
