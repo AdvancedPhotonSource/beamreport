@@ -14,6 +14,8 @@ request into this one.
 | NF-HEDM (near-field) | `manuals/nf-hedm/` | MIDAS | complete — spine, 6 phases, parameter reference, diagnosis, runbook, notebook |
 | pf-HEDM (scanning 3DXRD) | `manuals/pf-hedm/` | MIDAS | complete — spine, 6 phases, parameter reference, diagnosis, runbook, notebook |
 | Laue microdiffraction | `scripts/pipeline/laue/` | [LaueMatching](https://github.com/AdvancedPhotonSource/LaueMatching) | complete — spine, 7 phases, diagnosis, runbook, **two** campaign notebooks |
+| DFXM (dark-field X-ray microscopy) | `manuals/dfxm/` | MIDAS | complete — spine, 6 phases, diagnosis, envelope, runbook, notebook, survey template |
+| XPCS (X-ray photon correlation spectroscopy) | — | — | **not started** — envelope and unsupported-claims rubric drafted for handoff in `handoff/xpcs/`, awaiting instrument owners to fill in and a dataset to test against |
 
 ## What "complete" means
 

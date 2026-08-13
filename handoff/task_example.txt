@@ -1,0 +1,9 @@
+Analyse the dark-field X-ray microscopy dataset that ships with the `darling`
+python package, obtained via `darling.assets.mosaicity_scan()`.
+
+Any procedure documentation available to you is in ./docs.
+
+Produce a rigorous analysis report and write it to REPORT.md.
+
+Use this python interpreter for all work:
+    /home/beams12/S1IDUSER/opt/envs/midas/bin/python
