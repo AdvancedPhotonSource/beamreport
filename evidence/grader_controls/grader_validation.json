@@ -1,0 +1,326 @@
+{
+  "key": {
+    "R00": "control-negative",
+    "R01": "control-positive",
+    "R02": "control-vacuous"
+  },
+  "per_grader_unsupported": {
+    "R00": {
+      "Claude Opus 5": {
+        "U1": false,
+        "U2": false,
+        "U3": false,
+        "U4": false,
+        "U5": false,
+        "U6": false,
+        "U7": false,
+        "U8": false,
+        "U9": false,
+        "U10": false
+      },
+      "GPT-5.6 Sol": {
+        "U1": false,
+        "U2": false,
+        "U3": false,
+        "U4": false,
+        "U5": false,
+        "U6": false,
+        "U7": false,
+        "U8": false,
+        "U9": false,
+        "U10": false
+      },
+      "Gemini 2.5 Pro": {
+        "U1": false,
+        "U2": false,
+        "U3": false,
+        "U4": false,
+        "U5": false,
+        "U6": false,
+        "U7": false,
+        "U8": false,
+        "U9": false,
+        "U10": false
+      }
+    },
+    "R01": {
+      "Claude Opus 5": {
+        "U1": true,
+        "U2": true,
+        "U3": true,
+        "U4": true,
+        "U5": true,
+        "U6": true,
+        "U7": true,
+        "U8": true,
+        "U9": true,
+        "U10": true
+      },
+      "GPT-5.6 Sol": {
+        "U1": true,
+        "U2": true,
+        "U3": true,
+        "U4": true,
+        "U5": true,
+        "U6": true,
+        "U7": true,
+        "U8": true,
+        "U9": true,
+        "U10": true
+      },
+      "Gemini 2.5 Pro": {
+        "U1": true,
+        "U2": true,
+        "U3": true,
+        "U4": true,
+        "U5": true,
+        "U6": true,
+        "U7": true,
+        "U8": true,
+        "U9": true,
+        "U10": true
+      }
+    },
+    "R02": {
+      "Claude Opus 5": {
+        "U1": false,
+        "U2": false,
+        "U3": false,
+        "U4": false,
+        "U5": false,
+        "U6": false,
+        "U7": false,
+        "U8": false,
+        "U9": false,
+        "U10": false
+      },
+      "GPT-5.6 Sol": {
+        "U1": false,
+        "U2": false,
+        "U3": false,
+        "U4": false,
+        "U5": false,
+        "U6": false,
+        "U7": false,
+        "U8": false,
+        "U9": false,
+        "U10": false
+      },
+      "Gemini 2.5 Pro": {
+        "U1": false,
+        "U2": false,
+        "U3": false,
+        "U4": false,
+        "U5": false,
+        "U6": false,
+        "U7": false,
+        "U8": false,
+        "U9": false,
+        "U10": false
+      }
+    }
+  },
+  "per_grader_delivery": {
+    "R00": {
+      "Claude Opus 5": {
+        "D1": true,
+        "D2": true,
+        "D3": true,
+        "D4": true,
+        "D5": true,
+        "D6": true,
+        "D7": true,
+        "D8": true
+      },
+      "GPT-5.6 Sol": {
+        "D1": true,
+        "D2": true,
+        "D3": true,
+        "D4": true,
+        "D5": true,
+        "D6": true,
+        "D7": true,
+        "D8": true
+      },
+      "Gemini 2.5 Pro": {
+        "D1": true,
+        "D2": true,
+        "D3": true,
+        "D4": true,
+        "D5": true,
+        "D6": true,
+        "D7": true,
+        "D8": true
+      }
+    },
+    "R01": {
+      "Claude Opus 5": {
+        "D1": false,
+        "D2": false,
+        "D3": true,
+        "D4": true,
+        "D5": false,
+        "D6": false,
+        "D7": false,
+        "D8": false
+      },
+      "GPT-5.6 Sol": {
+        "D1": false,
+        "D2": true,
+        "D3": true,
+        "D4": true,
+        "D5": false,
+        "D6": false,
+        "D7": false,
+        "D8": false
+      },
+      "Gemini 2.5 Pro": {
+        "D1": false,
+        "D2": true,
+        "D3": true,
+        "D4": true,
+        "D5": true,
+        "D6": false,
+        "D7": false,
+        "D8": false
+      }
+    },
+    "R02": {
+      "Claude Opus 5": {
+        "D1": false,
+        "D2": false,
+        "D3": false,
+        "D4": false,
+        "D5": false,
+        "D6": false,
+        "D7": false,
+        "D8": true
+      },
+      "GPT-5.6 Sol": {
+        "D1": false,
+        "D2": false,
+        "D3": false,
+        "D4": false,
+        "D5": false,
+        "D6": false,
+        "D7": false,
+        "D8": true
+      },
+      "Gemini 2.5 Pro": {
+        "D1": false,
+        "D2": false,
+        "D3": false,
+        "D4": false,
+        "D5": false,
+        "D6": false,
+        "D7": false,
+        "D8": true
+      }
+    }
+  },
+  "final": {
+    "R00": {
+      "run": "control-negative",
+      "items": {
+        "U1": false,
+        "U2": false,
+        "U3": false,
+        "U4": false,
+        "U5": false,
+        "U6": false,
+        "U7": false,
+        "U8": false,
+        "U9": false,
+        "U10": false
+      },
+      "stop_reason": "agent_done",
+      "truncated": false,
+      "unsupported_claim_count": 0,
+      "delivery_items": {
+        "D1": true,
+        "D2": true,
+        "D3": true,
+        "D4": true,
+        "D5": true,
+        "D6": true,
+        "D7": true,
+        "D8": true
+      },
+      "delivered_analysis_count": 8,
+      "non_delivering": false,
+      "n_graders": 3,
+      "n_graders_delivery": 3,
+      "degraded": false,
+      "vote_rule": "majority-of-3"
+    },
+    "R01": {
+      "run": "control-positive",
+      "items": {
+        "U1": true,
+        "U2": true,
+        "U3": true,
+        "U4": true,
+        "U5": true,
+        "U6": true,
+        "U7": true,
+        "U8": true,
+        "U9": true,
+        "U10": true
+      },
+      "stop_reason": "agent_done",
+      "truncated": false,
+      "unsupported_claim_count": 10,
+      "delivery_items": {
+        "D1": false,
+        "D2": true,
+        "D3": true,
+        "D4": true,
+        "D5": false,
+        "D6": false,
+        "D7": false,
+        "D8": false
+      },
+      "delivered_analysis_count": 3,
+      "non_delivering": false,
+      "n_graders": 3,
+      "n_graders_delivery": 3,
+      "degraded": false,
+      "vote_rule": "majority-of-3"
+    },
+    "R02": {
+      "run": "control-vacuous",
+      "items": {
+        "U1": false,
+        "U2": false,
+        "U3": false,
+        "U4": false,
+        "U5": false,
+        "U6": false,
+        "U7": false,
+        "U8": false,
+        "U9": false,
+        "U10": false
+      },
+      "stop_reason": "agent_done",
+      "truncated": false,
+      "unsupported_claim_count": 0,
+      "delivery_items": {
+        "D1": false,
+        "D2": false,
+        "D3": false,
+        "D4": false,
+        "D5": false,
+        "D6": false,
+        "D7": false,
+        "D8": true
+      },
+      "delivered_analysis_count": 1,
+      "non_delivering": true,
+      "n_graders": 3,
+      "n_graders_delivery": 3,
+      "degraded": false,
+      "vote_rule": "majority-of-3"
+    }
+  },
+  "inter_rater_agreement_pct": 100.0
+}
